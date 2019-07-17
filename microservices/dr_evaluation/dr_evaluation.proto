@@ -1,0 +1,79 @@
+// To create _pb2.py and _pb2_grpc.py files, run the command,
+// python -m grpc_tools.protoc -I=. --python_out=. --grpc_python_out=. dr_evaluation.proto
+
+syntax = "proto3";
+package dr_evaluation;
+
+// RPC definition.
+service DREvaluation {
+
+    // A simple RPC.
+    // An error is returned if there is no meter data for the given request.
+    rpc GetDREvaluation (Request) returns (Reply) {}
+
+}
+
+// The request message containing the requested data information.
+message Request {
+
+    // Building name - str
+    string building = 1;
+
+    // Event day in unix nanoseconds
+    int64 event_day = 2;
+
+    // Model name - 'best', 'weather_5_10'...
+    string model_name = 3;
+
+}
+
+// Energy cost ($)
+message Cost {
+
+    // Event day cost
+    double actual = 1;
+
+    // Baseline cost
+    double baseline = 2;
+
+}
+
+// Mean outdoor air temperature (F)
+message OAT_Mean {
+
+    // Event day mean OAT
+    double event = 1;
+
+    // Baseline mean OAT
+    double baseline = 2;
+
+}
+
+// The response message containing DR Evaluations
+message Reply {
+
+    // Building name - str
+    string building = 1;
+
+    // Event date
+    string event_day = 2;
+
+    // Power cost of event day and baseline ($)
+    Cost cost = 3;
+
+    // Mean outdoor air temperature of event day and baseline (F)
+    OAT_Mean oat_mean = 4;
+
+    // Baseline type (model name)
+    string baseline_type = 5;
+
+    // Root mean square of baseline
+    double baseline_rmse = 6;
+
+    // Event day power values
+    repeated double actual = 7;
+
+    // Baseline power values
+    repeated double baseline = 8;
+
+}

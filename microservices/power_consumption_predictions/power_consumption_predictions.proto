@@ -1,0 +1,67 @@
+// To create _pb2.py and _pb2_grpc.py files, run the command,
+// python -m grpc_tools.protoc -I=. --python_out=. --grpc_python_out=. power_consumption_predictions.proto
+
+syntax = "proto3";
+package power_consumption_predictions;
+
+// RPC definition.
+service PowerConsumptionPredictions {
+
+    // A simple RPC.
+    // An error is returned if there is no meter data for the given request.
+    rpc GetPowerConsumptionPredictions (Request) returns (Reply) {}
+
+}
+
+// The request message containing the requested prediction information.
+message Request {
+
+    // Building name
+    string building = 1;
+
+    // Forecast end time in unix nanoseconds
+    int64 end = 2;
+
+    // The frequency/duration window (e.g., 5m, 15m)
+    // Supported units are minutes only
+    string window = 3;
+
+    // Dictionary mapping zone name with state
+    message Dict {
+
+        // Zone name
+        string zone = 1;
+
+        // List of states for each future time period
+        message State {
+
+            int32 state = 1;
+
+        }
+
+        // All HVAC states until forecasting end time
+        repeated State state = 2;
+
+    }
+
+    // Dictionary of zone names and the state they need the prediction for.
+    repeated Dict map_zone_state = 4;
+}
+
+// The response message containing power consumption predictions
+message Reply {
+
+    // Dataframe structure for power consumption prediction
+    message PowerConsumptionPredictionsPoint {
+
+        // Time
+        string time = 1;
+
+        // Power consumption
+        double power = 2;
+
+    }
+
+    // Dataframe containing power consumption predictions
+    repeated PowerConsumptionPredictionsPoint point = 1;
+}
