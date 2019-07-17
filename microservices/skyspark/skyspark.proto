@@ -21,7 +21,7 @@ message Request {
 
 }
 
-// The response message containing skyspark data
+
 message Data {
 
     // Time
@@ -29,6 +29,14 @@ message Data {
 
     // Queried data
     double value = 2;
+
+}
+
+// The response message containing dataframe of skyspark data
+message Reply {
+
+    // Data object consisting of time and value
+    repeated Data data = 1;
 
 }
 

@@ -84,8 +84,7 @@ class skysparkServicer(skyspark_pb2_grpc.skysparkServicer):
             # point = skyspark_pb2.Reply.Data(time=index.strftime('%Y-%m-%d %H:%M:%S'), value=new_value)
             # result.append(skyspark_pb2.Reply.point(point))
 
-        print('result: ', result)
-        return result, None
+        return skyspark_pb2.Reply(data=result), None
 
     def get_skyspark_data(self, request):
         """ Main function of micro-service; checks for errors in the request parameter(s) and queries for
@@ -130,18 +129,16 @@ class skysparkServicer(skyspark_pb2_grpc.skysparkServicer):
 
         """
 
-        print('GetDataFromSkyspark()')
+        # return skyspark_pb2.Data(time='dsf', value=34.2)
+
         result, error = self.get_skyspark_data(request)
-        print('error: ', error)
         if error:
             # List of status codes: https://github.com/grpc/grpc/blob/master/doc/statuscodes.md
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details(error)
             return skyspark_pb2.Data()
 
-        for point in result:
-            yield point
-        # return result
+        return result
 
 
 if __name__ == '__main__':

@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='skyspark',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x0eskyspark.proto\x12\x08skyspark\"\x18\n\x07Request\x12\r\n\x05query\x18\x01 \x01(\t\"#\n\x04\x44\x61ta\x12\x0c\n\x04time\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x01\x32\x46\n\x08skyspark\x12:\n\x13GetDataFromSkyspark\x12\x11.skyspark.Request\x1a\x0e.skyspark.Data\"\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x0eskyspark.proto\x12\x08skyspark\"\x18\n\x07Request\x12\r\n\x05query\x18\x01 \x01(\t\"#\n\x04\x44\x61ta\x12\x0c\n\x04time\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x01\"%\n\x05Reply\x12\x1c\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32\x0e.skyspark.Data2F\n\x08skyspark\x12:\n\x13GetDataFromSkyspark\x12\x11.skyspark.Request\x1a\x0e.skyspark.Data\"\x00\x62\x06proto3')
 )
 
 
@@ -93,8 +93,41 @@ _DATA = _descriptor.Descriptor(
   serialized_end=89,
 )
 
+
+_REPLY = _descriptor.Descriptor(
+  name='Reply',
+  full_name='skyspark.Reply',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='data', full_name='skyspark.Reply.data', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=91,
+  serialized_end=128,
+)
+
+_REPLY.fields_by_name['data'].message_type = _DATA
 DESCRIPTOR.message_types_by_name['Request'] = _REQUEST
 DESCRIPTOR.message_types_by_name['Data'] = _DATA
+DESCRIPTOR.message_types_by_name['Reply'] = _REPLY
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Request = _reflection.GeneratedProtocolMessageType('Request', (_message.Message,), dict(
@@ -111,6 +144,13 @@ Data = _reflection.GeneratedProtocolMessageType('Data', (_message.Message,), dic
   ))
 _sym_db.RegisterMessage(Data)
 
+Reply = _reflection.GeneratedProtocolMessageType('Reply', (_message.Message,), dict(
+  DESCRIPTOR = _REPLY,
+  __module__ = 'skyspark_pb2'
+  # @@protoc_insertion_point(class_scope:skyspark.Reply)
+  ))
+_sym_db.RegisterMessage(Reply)
+
 
 
 _SKYSPARK = _descriptor.ServiceDescriptor(
@@ -119,8 +159,8 @@ _SKYSPARK = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=91,
-  serialized_end=161,
+  serialized_start=130,
+  serialized_end=200,
   methods=[
   _descriptor.MethodDescriptor(
     name='GetDataFromSkyspark',
