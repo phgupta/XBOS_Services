@@ -29,13 +29,13 @@ def round_minutes(dt, direction, resolution):
 with open('models/ciee-model.json') as json_file:
     model_info = json.load(json_file)
 
-window = 5
+window = 15
 # date_today = datetime.datetime.today()
 # curr_time_rounded = round_minutes(date_today, 'down', window)
 # start_time = curr_time_rounded - datetime.timedelta(minutes=model_info['num_prev_minutes'])
 
 start_time = datetime.datetime(2018, 7, 9, 12, 0, 0)
-curr_time_rounded = datetime.datetime(2019, 7, 9, 18, 0, 0)
+curr_time_rounded = datetime.datetime(2019, 7, 15, 18, 0, 0)
 
 print('start_time: ', start_time)
 print('end_time: ', curr_time_rounded)
@@ -44,7 +44,7 @@ print('end_time: ', curr_time_rounded)
 indoor_historic_stub = xbos_services_getter.get_indoor_historic_stub()
 historic_states = xbos_services_getter.get_indoor_actions_historic(indoor_historic_stub,
                                                                    building='ciee',
-                                                                   zone='hvac_zone_centralzone_1.0',
+                                                                   zone='hvac_zone_eastzone',
                                                                    start=start_time,
                                                                    end=curr_time_rounded,
                                                                    window=str(window)+'m',

@@ -1,6 +1,7 @@
-from .pge_events import pge_events
+from .pdp_events import pdp_events
 from .model_objects import all_models
 from .get_test_days import get_test_data, get_window_of_day
+from .get_greenbutton_id import *
 
 from sklearn.metrics import mean_squared_error
 import datetime
@@ -9,7 +10,7 @@ import pandas as pd
 import numpy as np
 import pickle
 import operator
-
+PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))+'/'
 
 
 def test_models(site, models='all'):
@@ -27,9 +28,16 @@ def test_models(site, models='all'):
     start_train = pd.to_datetime('2016-01-01').tz_localize('US/Pacific').isoformat()
     end_train = pd.to_datetime(datetime.datetime.today().date()).tz_localize('US/Pacific').isoformat()
 
-    # Use datetime.date objects for DR-event days
-    dr_event_dates = [pd.to_datetime(d).date() for d in pge_events]
+    #get meter id to differentiate between pdp days
+    tarrifs = pd.read_csv(os.path.join(PROJECT_ROOT, 'tariffs.csv'), index_col='meter_id')
+    meter_id = get_greenbutton_id(site)
+    tariff = tarrifs.loc[meter_id]
+    tariff = dict(tariff)
+    utility_id=tariff['utility_id']
 
+    # Use datetime.date objects for DR-event days
+
+    dr_event_dates = [pd.to_datetime(d).date() for d in pdp_events[utility_id]]
     # Get days that are similar to DR-event days to test the regression model on
     test_days, train_days = get_test_data(site, dr_event_dates, start_train, end_train)
 
@@ -58,7 +66,7 @@ def test_models(site, models='all'):
         errors = []
 
         for date in test_days:
-            actual, prediction, event_weather = model.predict(site, date)
+            actual, prediction, event_weather,baseline_weather = model.predict(site, date)
             try:
                 errors.append(mean_squared_error(actual, prediction))
             except Exception as e:
@@ -75,7 +83,7 @@ def test_models(site, models='all'):
         response[model_name] = test_rmse
 
     best_model = min(model_errors.items(), key=operator.itemgetter(1))[0]
-    
+
 
     #write_file_path = 'models/{}/best.txt'.format(site)
     write_file_path = 'models/{}/best'.format(site)

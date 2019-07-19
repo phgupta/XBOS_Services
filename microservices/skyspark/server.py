@@ -74,16 +74,27 @@ class skysparkServicer(skyspark_pb2_grpc.skysparkServicer):
 
         result = []
         for index, row in df.iterrows():
-            print('row: ', row)
-            print('row.values: ', row.values)
-            new_value = float(np.nan_to_num(row.values)[0])
-            print('new_value: ', new_value)
-            print('type(new_value): ', type(new_value))
-            result.append(skyspark_pb2.Data(time=index.strftime('%Y-%m-%d %H:%M:%S'), value=new_value))
+            # print('row: ', row)
+            # print('row.values: ', row.values)
+
+            # print(index, ' ', row.values)
+
+            if not row.values:
+                val = [0.0]
+                # print('val = 0.0; new_val: ', float(np.nan_to_num(val)[0]))
+            else:
+                val = row.values
+
+            new_val = float(np.nan_to_num(val)[0])
+            # print('new_value: ', new_val)
+            # print('type(new_value): ', type(new_val))
+
+            result.append(skyspark_pb2.Data(time=index.strftime('%Y-%m-%d %H:%M:%S'), value=new_val))
 
             # point = skyspark_pb2.Reply.Data(time=index.strftime('%Y-%m-%d %H:%M:%S'), value=new_value)
             # result.append(skyspark_pb2.Reply.point(point))
 
+        # print('\n\nskyspark_pb2.Reply(data=result): ', skyspark_pb2.Reply(data=result))
         return skyspark_pb2.Reply(data=result), None
 
     def get_skyspark_data(self, request):
@@ -110,7 +121,7 @@ class skysparkServicer(skyspark_pb2_grpc.skysparkServicer):
             result, error = self._get_skyspark_data()
             if error:
                 return None, error
-            return result, None
+        return result, None
 
     def GetDataFromSkyspark(self, request, context):
         """ gRPC function.
@@ -138,6 +149,7 @@ class skysparkServicer(skyspark_pb2_grpc.skysparkServicer):
             context.set_details(error)
             return skyspark_pb2.Data()
 
+        print('\n\nresult: ', result)
         return result
 
 

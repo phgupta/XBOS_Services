@@ -10,148 +10,13 @@ from concurrent import futures
 from datetime import datetime
 
 import xbos_services_getter
-from main import evaluate
+from dr_evaluation import evaluate
 
 import dr_evaluation_pb2
 import dr_evaluation_pb2_grpc
 
-# METER_DATA_HOST_ADDRESS = os.environ["METER_DATA_HISTORICAL_HOST_ADDRESS"]
 METER_DATA_HOST_ADDRESS = 'localhost:1234'
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
-
-
-# def get_meter_data(pymortar_client, pymortar_objects, site, start, end,
-#                    point_type="Green_Button_Meter", agg='MEAN', window='15m'):
-#     """ Get meter data from pymortar.
-#
-#     Parameters
-#     ----------
-#     pymortar_client     : pymortar.Client({})
-#         Pymortar Client Object.
-#     pymortar_objects    : dict
-#         Dictionary that maps aggregation values to corresponding pymortar objects.
-#     site                : str
-#         Building name.
-#     start               : str
-#         Start date - 'YYYY-MM-DDTHH:MM:SSZ'
-#     end                 : str
-#         End date - 'YYYY-MM-DDTHH:MM:SSZ'
-#     point_type          : str
-#         Type of data, i.e. Green_Button_Meter, Building_Electric_Meter...
-#     agg                 : str
-#         Values include MEAN, MAX, MIN, COUNT, SUM, RAW (the temporal window parameter is ignored)
-#     window              : str
-#         Size of the moving window.
-#
-#     Returns
-#     -------
-#     pd.DataFrame(), defaultdict(list)
-#         Meter data, dictionary that maps meter data's columns (uuid's) to sitenames.
-#
-#     """
-#
-#     agg = pymortar_objects.get(agg, 'ERROR')
-#
-#     if agg == 'ERROR':
-#         raise ValueError('Invalid aggregate type; should be string and in caps; values include: ' +
-#                          pymortar_objects.keys())
-#
-#     query_meter = "SELECT ?meter WHERE { ?meter rdf:type brick:" + point_type + " };"
-#
-#     # Define the view of meters (metadata)
-#     meter = pymortar.View(
-#         name="view_meter",
-#         sites=[site],
-#         definition=query_meter
-#     )
-#
-#     # Define the meter timeseries stream
-#     data_view_meter = pymortar.DataFrame(
-#         name="data_meter",  # dataframe column name
-#         aggregation=agg,
-#         window=window,
-#         timeseries=[
-#             pymortar.Timeseries(
-#                 view="view_meter",
-#                 dataVars=["?meter"]
-#             )
-#         ]
-#     )
-#
-#     # Define timeframe
-#     time_params = pymortar.TimeParams(
-#         start=start,
-#         end=end
-#     )
-#
-#     # Form the full request object
-#     request = pymortar.FetchRequest(
-#         sites=[site],
-#         views=[meter],
-#         dataFrames=[data_view_meter],
-#         time=time_params
-#     )
-#
-#     # Fetch data from request
-#     response = pymortar_client.fetch(request)
-#
-#     # resp_meter = (url, uuid, sitename)
-#     resp_meter = response.query('select * from view_meter')
-#
-#     # Map's uuid's to the site names
-#     map_uuid_sitename = defaultdict(list)
-#     for (url, uuid, sitename) in resp_meter:
-#         map_uuid_sitename[uuid].append(sitename)
-#
-#     return response['data_meter'], map_uuid_sitename
-#
-#
-# def get_historical_data(request, pymortar_client, pymortar_objects):
-#     """ Get historical meter data using pymortar and create gRPC repsonse object.
-#
-#     Parameters
-#     ----------
-#     request                 : gRPC request
-#         Contains parameters to fetch data.
-#     pymortar_client     : pymortar.Client({})
-#         Pymortar Client Object.
-#     pymortar_objects    : dict
-#         Dictionary that maps aggregation values to corresponding pymortar objects.
-#
-#     Returns
-#     -------
-#     gRPC response, str
-#         List of points containing the datetime and power consumption; Error Message
-#
-#     """
-#
-#     start_time = datetime.utcfromtimestamp(float(request.start / 1e9)).replace(tzinfo=pytz.utc)
-#     end_time = datetime.utcfromtimestamp(float(request.end / 1e9)).replace(tzinfo=pytz.utc)
-#
-#     try:
-#         df, map_uuid_meter = get_meter_data(pymortar_client=pymortar_client,
-#                                             pymortar_objects=pymortar_objects,
-#                                             site=request.building,
-#                                             point_type=request.point_type,
-#                                             start=start_time.strftime('%Y-%m-%dT%H:%M:%SZ'),
-#                                             end=end_time.strftime('%Y-%m-%dT%H:%M:%SZ'),
-#                                             agg=request.aggregate,
-#                                             window=request.window)
-#     except Exception as e:
-#         return None, e
-#
-#     if len(df.columns) == 2:
-#         df[df.columns[0]] = df[df.columns[0]] + df[df.columns[1]]
-#         df = df.drop(columns=[df.columns[1]])
-#
-#     df.columns = ['power']
-#
-#     result = []
-#     for index, row in df.iterrows():
-#         point = dr_evaluation_pb2.MeterDataPoint(time=int(index.timestamp()*1e9), power=row['power'])
-#         result.append(point)
-#
-#     return dr_evaluation_pb2.Reply(point=result), None
 
 
 class DREvaluationServicer(dr_evaluation_pb2_grpc.DREvaluationServicer):
@@ -210,19 +75,23 @@ class DREvaluationServicer(dr_evaluation_pb2_grpc.DREvaluationServicer):
 
         """
 
-        result = evaluate.evaluate(self.building, self.event_day, model_name=self.model_name)
-        print('RESULT: \n', result)
+        try:
+            result = evaluate.evaluate(self.building, self.event_day, model_name=self.model_name)
 
-        return dr_evaluation_pb2.Reply(
-            building='ciee',
-            event_day='28th June, 2019',
-            cost=dr_evaluation_pb2.Cost(actual=10.8, baseline=33.5),
-            oat_mean=dr_evaluation_pb2.OAT_Mean(event=56.2, baseline=234.3),
-            baseline_type='dasf',
-            baseline_rmse=4534.1,
-            actual=[56.3, 65.3],
-            baseline=[11.1, 112.6]
-        )
+            return dr_evaluation_pb2.Reply(
+                building=result['site'],
+                event_day=result['date'].strftime('%Y-%m-%d %H:%M:%S'),
+                cost=dr_evaluation_pb2.Cost(actual=result['energy cost']['baseline'],
+                                            baseline=result['energy cost']['baseline']),
+                oat_mean=dr_evaluation_pb2.OAT_Mean(event=result['OAT_mean']['event'],
+                                                    baseline=result['OAT_mean']['baseline']),
+                baseline_type=result['baseline-type'],
+                baseline_rmse=result['baseline-rmse'],
+                actual=result['actual'],
+                baseline=result['baseline']
+            ), None
+        except Exception as e:
+            return None, e
 
     def GetDREvaluation(self, request, context):
         """ RPC.

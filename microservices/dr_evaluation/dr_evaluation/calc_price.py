@@ -49,6 +49,7 @@ def calc_total_price(power_vector, tariff_options, start_datetime, end_datetime,
     start_datetime: the datetime object representing the start time (starts )
     end_datetime: the datetime object representing the start time
     '''
+
     time_delta = end_datetime - start_datetime
     interval_15_min = (3600*24*time_delta.days + time_delta.seconds)/(60*15)
     if len(power_vector) == interval_15_min or interval == '15min':
@@ -68,17 +69,14 @@ def calc_total_price(power_vector, tariff_options, start_datetime, end_datetime,
                   option_exclusion=tariff_options['option_exclusion'],
                   option_mandatory=tariff_options['option_mandatory'])
     tariff.read_from_json()
-    tariff_struct_from_openei_data(tariff, calculator, pdp_event_filenames='PDP_events.json')
+    #tariff_struct_from_openei_data(tariff, calculator, pdp_event_filenames='PDP_events.json')
+    tariff_struct_from_openei_data(tariff, calculator, pdp_event_filenames='PDP_events_dict.json')
     pd_prices, map_prices = calculator.get_electricity_price(timestep=TariffElemPeriod.HOURLY,
                                                         range_date=(start_datetime.replace(tzinfo=pytz.timezone('US/Pacific')),
                                                                     end_datetime.replace(tzinfo=pytz.timezone('US/Pacific'))))
-    #print("pd_prices",pd_prices)
     pd_prices = pd_prices.fillna(0)
     #energyPrices = pd_prices.customer_energy_charge.values + pd_prices.pdp_non_event_energy_credit.values + pd_prices.pdp_event_energy_charge.values
     energyPrices = pd_prices.customer_energy_charge.values + pd_prices.pdp_event_energy_charge.values
-    # print('pd_prices.customer_energy_charge.values',pd_prices.customer_energy_charge.values)
-    # print('pd_prices.pdp_non_event_energy_credit.values',pd_prices.pdp_non_event_energy_credit.values)
-    # print('pd_prices.pdp_event_energy_charge.values',pd_prices.pdp_event_energy_charge.values)
 
     #cannot just add demand prices
     demandPrices = pd_prices.customer_demand_charge_season.values + pd_prices.pdp_non_event_demand_credit.values + pd_prices.customer_demand_charge_tou.values

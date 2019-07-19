@@ -4,19 +4,12 @@ import pickle
 from .utils import get_date_str
 from .daily_data import get_daily_data
 
-import os
-curr_path = os.path.abspath(os.path.dirname(__file__))
-
 def evaluate(site, date, model_name='best'):
     cli = pymortar.Client()
     date = pd.to_datetime(date).date()
-
-    # best_model_path = './models/{}/{}'.format(site, model_name)
-    best_model_path = os.path.join(curr_path + '/../models/{}/{}'.format(site, model_name))
-
+    import sys
+    best_model_path = './models/{}/{}'.format(site, model_name)
     model_file = open(best_model_path, 'rb')
-    print('model_file: ', model_file)
-
     best_model = pickle.load(model_file)
     actual, prediction, event_weather, baseline_weather = best_model.predict(site, date)
     weather_mean=event_weather[((event_weather.index.hour>=14) & (event_weather.index.hour<=18))].mean()
@@ -24,7 +17,7 @@ def evaluate(site, date, model_name='best'):
     return {
         'site': site,
         'date': date,
-        'cost': {
+        'energy cost': {
             'actual': daily_data['actual_cost'],
             'baseline': daily_data['baseline_cost']
         },
