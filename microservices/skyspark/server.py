@@ -1,3 +1,6 @@
+__author__ = "Pranav Gupta"
+__email__ = "pranavhgupta@lbl.gov"
+
 """ gRPC Server & client examples - https://grpc.io/docs/tutorials/basic/python.html """
 
 import time
@@ -62,39 +65,15 @@ class skysparkServicer(skyspark_pb2_grpc.skysparkServicer):
         """
 
         try:
-            print('self.client: ', self.client)
-            print('self.query: ', self.query)
-
             df = self.client.query(self.query)
-
-            print('df: \n', df.head())
-
-        except:
-            return None, "Invalid query or failure in skyspark connection"
+        except Exception as e:
+            return None, "Invalid query or failure in skyspark connection; Error: {0}".format(str(e))
 
         result = []
         for index, row in df.iterrows():
-            # print('row: ', row)
-            # print('row.values: ', row.values)
-
-            # print(index, ' ', row.values)
-
-            if not row.values:
-                val = [0.0]
-                # print('val = 0.0; new_val: ', float(np.nan_to_num(val)[0]))
-            else:
-                val = row.values
-
-            new_val = float(np.nan_to_num(val)[0])
-            # print('new_value: ', new_val)
-            # print('type(new_value): ', type(new_val))
-
-            result.append(skyspark_pb2.Data(time=index.strftime('%Y-%m-%d %H:%M:%S'), value=new_val))
-
-            # point = skyspark_pb2.Reply.Data(time=index.strftime('%Y-%m-%d %H:%M:%S'), value=new_value)
-            # result.append(skyspark_pb2.Reply.point(point))
-
-        # print('\n\nskyspark_pb2.Reply(data=result): ', skyspark_pb2.Reply(data=result))
+            tim = index.strftime('%Y-%m-%d %H:%M:%S')
+            val = float(row.values) if not np.isnan(row.values) else 0.0    # Convert all NaN values to 0.0
+            result.append(skyspark_pb2.Data(time=tim, value=val))
         return skyspark_pb2.Reply(data=result), None
 
     def get_skyspark_data(self, request):
@@ -140,16 +119,12 @@ class skysparkServicer(skyspark_pb2_grpc.skysparkServicer):
 
         """
 
-        # return skyspark_pb2.Data(time='dsf', value=34.2)
-
         result, error = self.get_skyspark_data(request)
         if error:
             # List of status codes: https://github.com/grpc/grpc/blob/master/doc/statuscodes.md
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details(error)
             return skyspark_pb2.Data()
-
-        print('\n\nresult: ', result)
         return result
 
 

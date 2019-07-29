@@ -1,3 +1,6 @@
+__author__ = "Pranav Gupta"
+__email__ = "pranavhgupta@lbl.gov"
+
 import grpc
 import pandas as pd
 
@@ -17,32 +20,21 @@ def run():
 
         stub = skyspark_pb2_grpc.skysparkStub(channel)
 
-        # try:
+        try:
+            query = 'readAll(id==@216fce5f-0d543013).hisRead(date(2019,06,30)..date(2019,07,01), {limit: null})'
 
-        query = 'readAll(id==@216fce5f-0d543013).hisRead(date(2019,06,30)..date(2019,07,01), {limit: null})'
+            # Make remote procedure call
+            response = stub.GetDataFromSkyspark(skyspark_pb2.Request(query=query))
 
-        # Make remote procedure call
-        response = stub.GetDataFromSkyspark(skyspark_pb2.Request(query=query))
-        print('response: ', response)
-
-        df = pd.DataFrame()
-        for point in response:
-            print('point: ', point)
-            df = df.append([[point.time, point.value]])
-
-        df.columns = ['datetime', 'power']
-        df.set_index('datetime', inplace=True)
-
-        print('Result: \n', df)
-        # if sys.argv[0]:
-        #     df.to_csv(sys.argv[0])
-        # else:
-        #     df.to_csv('skyspark_data.csv')
-
-        # except grpc.RpcError as e:
-        #     print('client.py ERROR: \n', e)
+            # Convert response object into pd.DataFrame()
+            df = pd.DataFrame()
+            for point in response.data:
+                df = df.append([[point.time, point.value]])
+            df.columns = ['datetime', 'power']
+            df.set_index('datetime', inplace=True)
+        except grpc.RpcError as e:
+            print('client.py ERROR: \n', e)
 
 
 if __name__ == '__main__':
-
     run()

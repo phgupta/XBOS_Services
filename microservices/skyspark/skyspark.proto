@@ -9,7 +9,7 @@ service skyspark {
 
     // A simple RPC.
     // An error is returned if there is no data for the given request.
-    rpc GetDataFromSkyspark (Request) returns (Data) {}
+    rpc GetDataFromSkyspark (Request) returns (Reply) {}
 
 }
 
@@ -21,14 +21,13 @@ message Request {
 
 }
 
-
 message Data {
 
     // Time
     string time = 1;
 
     // Queried data
-    double value = 2;
+    float value = 2;
 
 }
 

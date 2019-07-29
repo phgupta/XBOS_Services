@@ -17,7 +17,7 @@ class skysparkStub(object):
     self.GetDataFromSkyspark = channel.unary_unary(
         '/skyspark.skyspark/GetDataFromSkyspark',
         request_serializer=skyspark__pb2.Request.SerializeToString,
-        response_deserializer=skyspark__pb2.Data.FromString,
+        response_deserializer=skyspark__pb2.Reply.FromString,
         )
 
 
@@ -39,7 +39,7 @@ def add_skysparkServicer_to_server(servicer, server):
       'GetDataFromSkyspark': grpc.unary_unary_rpc_method_handler(
           servicer.GetDataFromSkyspark,
           request_deserializer=skyspark__pb2.Request.FromString,
-          response_serializer=skyspark__pb2.Data.SerializeToString,
+          response_serializer=skyspark__pb2.Reply.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
