@@ -32,6 +32,7 @@ def run():
                 df = df.append([[point.time, point.value]])
             df.columns = ['datetime', 'power']
             df.set_index('datetime', inplace=True)
+            print(df.head())
         except grpc.RpcError as e:
             print('client.py ERROR: \n', e)
 

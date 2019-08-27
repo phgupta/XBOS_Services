@@ -6,9 +6,9 @@ __email__ = "pranavhgupta@lbl.gov"
 import time
 import grpc
 import pytz
-import numpy as np
+import json
 from concurrent import futures
-from spyspark import spyspark_client
+import spyspark
 
 import skyspark_pb2
 import skyspark_pb2_grpc
@@ -25,11 +25,7 @@ class skysparkServicer(skyspark_pb2_grpc.skysparkServicer):
 
     def __init__(self):
         """ Constructor. """
-
         self.query = None
-
-        # Client that will be used to call all functions for SkySpark class
-        self.client = spyspark_client("URL")
 
     def get_parameters(self, request):
         """ Storing and error checking request parameters.
@@ -65,15 +61,20 @@ class skysparkServicer(skyspark_pb2_grpc.skysparkServicer):
         """
 
         try:
-            df = self.client.query(self.query)
+            result_str = spyspark.axon_request(self.query, "application/json")
+            result_json = json.loads(result_str)
         except Exception as e:
             return None, "Invalid query or failure in skyspark connection; Error: {0}".format(str(e))
 
         result = []
-        for index, row in df.iterrows():
-            tim = index.strftime('%Y-%m-%d %H:%M:%S')
-            val = float(row.values) if not np.isnan(row.values) else 0.0    # Convert all NaN values to 0.0
-            result.append(skyspark_pb2.Data(time=tim, value=val))
+        for row in result_json['rows']:
+            timestamp = row['ts'].split(' ')[0][2:]
+            if 'v0' in row:
+                value = float(row['v0'].split(' ')[0][2:])
+            else:
+                value = 0.0
+            result.append(skyspark_pb2.Data(time=timestamp, value=value))
+
         return skyspark_pb2.Reply(data=result), None
 
     def get_skyspark_data(self, request):
