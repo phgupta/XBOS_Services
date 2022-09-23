@@ -16,7 +16,7 @@ pandas==0.24.2
 PasteDeploy==2.0.1
 plaster==1.0
 plaster-pastedeploy==0.7
-protobuf==3.7.1
+protobuf==3.18.3
 pymortar==1.0.4
 pyparsing==2.4.0
 python-dateutil==2.8.0
